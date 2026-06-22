@@ -1,0 +1,44 @@
+# Example configuration for the Databricks entity matching pipeline.
+# The current MVP notebooks are hardcoded for simplicity, but this file documents
+# the intended deploy-time settings for another workspace/account.
+
+workspace:
+  catalog: gleif_project
+  schema: gleif_db
+  volume: gleif_vl
+
+paths:
+  raw_gleif_lei_cdf: /Volumes/gleif_project/gleif_db/gleif_vl/raw_gleif/lei_cdf/
+  raw_gleif_rr_cdf: /Volumes/gleif_project/gleif_db/gleif_vl/raw_gleif/rr_cdf/
+  client_input: /Volumes/gleif_project/gleif_db/gleif_vl/uploads/incoming/client_entities.csv
+  internal_risk_input: /Volumes/gleif_project/gleif_db/gleif_vl/uploads/internal_risk_entities.csv
+  exports: /Volumes/gleif_project/gleif_db/gleif_vl/exports/
+
+tables:
+  bronze_lei: bronze_gleif_lei_cdf
+  bronze_rr: bronze_gleif_rr_cdf
+  silver_entities: silver_gleif_entities
+  silver_relationships: silver_gleif_relationships
+  client_raw: client_entities_raw
+  client_clean: client_entities_clean
+  internal_risk_raw: internal_risk_entities_raw
+  reference_clean: reference_entities_clean
+  match_candidates: match_candidates
+  match_results: match_results
+  review_queue: review_queue
+  hierarchy_results: entity_hierarchy_results
+  gold_mapping: gold_client_to_internal_risk_mapping
+
+matching:
+  auto_match_threshold: 0.90
+  review_threshold: 0.75
+  max_review_candidates_per_client: 5
+
+client_file:
+  mandatory_columns:
+    - client_name
+  optional_columns:
+    - country
+    - registration_number
+    - lei
+    - address
