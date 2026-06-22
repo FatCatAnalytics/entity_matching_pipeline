@@ -29,21 +29,21 @@ client = (
     .withColumn("blocking_key", concat_ws("|", col("country_norm"), col("name_prefix_4")))
 )
 
-internal_raw = spark.table(f"{catalog}.{schema}.internal_risk_entities_raw")
+internal_client_raw = spark.table(f"{catalog}.{schema}.internal_client_entities_raw")
 
-if "registration_number" not in internal_raw.columns:
-    internal_raw = internal_raw.withColumn("registration_number", lit(None).cast("string"))
+if "registration_number" not in internal_client_raw.columns:
+    internal_client_raw = internal_client_raw.withColumn("registration_number", lit(None).cast("string"))
 
-internal = (
-    internal_raw
+internal_client = (
+    internal_client_raw
     .selectExpr(
-        "risk_entity_id as reference_id",
+        "internal_entity_id as reference_id",
         "legal_name",
         "country",
         "address",
         "lei",
         "registration_number",
-        "'INTERNAL_RISK' as source"
+        "'INTERNAL_CLIENT' as source"
     )
     .withColumn("clean_name", clean_name_expr("legal_name"))
     .withColumn("country_norm", upper(trim(col("country"))))
@@ -77,6 +77,6 @@ gleif = (
 )
 
 client.write.mode("overwrite").format("delta").saveAsTable(f"{catalog}.{schema}.client_entities_clean")
-internal.unionByName(gleif).write.mode("overwrite").format("delta").saveAsTable(f"{catalog}.{schema}.reference_entities_clean")
+internal_client.unionByName(gleif).write.mode("overwrite").format("delta").saveAsTable(f"{catalog}.{schema}.reference_entities_clean")
 
 print("Clean client and reference entities created.")
