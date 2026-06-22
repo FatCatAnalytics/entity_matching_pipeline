@@ -1,0 +1,28 @@
+# Data files
+*.csv
+*.xlsx
+*.xls
+*.zip
+*.xml
+*.json
+*.parquet
+*.delta
+
+# Keep sample templates
+!sample_data/*.csv
+
+# Python/cache
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Secrets/environment
+.env
+*.secret
+*.pem
+*.key
+
+# Local/editor
+.DS_Store
+.vscode/
+.idea/
