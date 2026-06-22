@@ -18,7 +18,7 @@ output_dir.mkdir(parents=True, exist_ok=True)
 output_file = output_dir / file_name
 
 tables_to_export = {
-    "gold_mapping": f"{catalog}.{schema}.gold_client_to_internal_risk_mapping",
+    "gold_mapping": f"{catalog}.{schema}.gold_client_to_internal_client_mapping",
     "review_queue": f"{catalog}.{schema}.review_queue",
     "match_results": f"{catalog}.{schema}.match_results",
     "entity_hierarchy": f"{catalog}.{schema}.entity_hierarchy_results",
