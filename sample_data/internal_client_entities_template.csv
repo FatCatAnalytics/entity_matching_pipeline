@@ -1,0 +1,5 @@
+internal_entity_id,legal_name,country,address,lei,registration_number,internal_rating,business_owner
+I001,Apple Inc,US,Cupertino,HWUPKR0MPOU8FGXBT394,,Low,Technology
+I002,Barclays PLC,GB,London,213800LBQA1Y9L22JB70,,Medium,Banking
+I003,HSBC Holdings plc,GB,London,MLU0ZO3ML4LN2LL2TL39,,Medium,Banking
+I004,PayPal Holdings Inc,US,San Jose,,,Medium,Payments
