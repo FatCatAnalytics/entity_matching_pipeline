@@ -37,13 +37,14 @@ if "registration_number" not in internal_client_raw.columns:
 internal_client = (
     internal_client_raw
     .selectExpr(
-        "internal_entity_id as reference_id",
+        "internal_entity_id",
         "legal_name",
         "country",
         "address",
         "lei",
         "registration_number",
-        "'INTERNAL_CLIENT' as source"
+        "internal_rating",
+        "business_owner"
     )
     .withColumn("clean_name", clean_name_expr("legal_name"))
     .withColumn("country_norm", upper(trim(col("country"))))
@@ -55,7 +56,7 @@ internal_client = (
     .withColumn("blocking_key", concat_ws("|", col("country_norm"), col("name_prefix_4")))
 )
 
-gleif = (
+gleif_reference = (
     spark.table(f"{catalog}.{schema}.gleif_entities_raw")
     .selectExpr(
         "lei as reference_id",
@@ -77,6 +78,13 @@ gleif = (
 )
 
 client.write.mode("overwrite").format("delta").saveAsTable(f"{catalog}.{schema}.client_entities_clean")
-internal_client.unionByName(gleif).write.mode("overwrite").format("delta").saveAsTable(f"{catalog}.{schema}.reference_entities_clean")
 
-print("Clean client and reference entities created.")
+# Keep the internal client/entity master separate. It is used later in notebook 09.
+internal_client.write.mode("overwrite").format("delta").saveAsTable(f"{catalog}.{schema}.internal_client_entities_clean")
+
+# Reference candidates for the first-stage match should be GLEIF only.
+# Do not union internal client rows here, otherwise the pipeline may match to internal rows
+# without LEIs and fail to enrich hierarchy/direct/ultimate parent relationships.
+gleif_reference.write.mode("overwrite").format("delta").saveAsTable(f"{catalog}.{schema}.reference_entities_clean")
+
+print("Clean client, internal client, and GLEIF reference entities created.")
