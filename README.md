@@ -1,6 +1,6 @@
 # Entity Matching Pipeline
 
-Databricks MVP pipeline for mapping client-submitted corporate names to GLEIF entities and internal risk entities.
+Databricks MVP pipeline for mapping client-submitted corporate names to GLEIF entities and an internal client/entity master list.
 
 ## What it does
 
@@ -14,7 +14,8 @@ The pipeline supports:
 - Candidate generation using LEI, registration number, name/country blocking, and name-only blocking
 - Match scoring and review queue creation
 - Direct and ultimate parent enrichment from GLEIF RR-CDF
-- Gold output mapping client entities to internal risk entities
+- Gold output mapping submitted client entities to the internal client/entity master
+- Internal fallback matching by LEI, normalized name, and fuzzy name similarity
 - Excel export for business review
 
 ## Data not stored in Git
@@ -23,7 +24,7 @@ Do not commit:
 
 - GLEIF CSV/XML/JSON files
 - Client files
-- Internal risk files
+- Internal client/entity files
 - Delta files
 - Excel exports
 - Secrets or tokens
@@ -64,16 +65,16 @@ LEI-CDF CSV -> /Volumes/gleif_project/gleif_db/gleif_vl/raw_gleif/lei_cdf/
 RR-CDF CSV  -> /Volumes/gleif_project/gleif_db/gleif_vl/raw_gleif/rr_cdf/
 ```
 
-Upload client file:
+Upload submitted client file:
 
 ```text
 /Volumes/gleif_project/gleif_db/gleif_vl/uploads/incoming/client_entities.csv
 ```
 
-Upload internal risk file:
+Upload internal client/entity file:
 
 ```text
-/Volumes/gleif_project/gleif_db/gleif_vl/uploads/internal_risk_entities.csv
+/Volumes/gleif_project/gleif_db/gleif_vl/uploads/internal_client_entities.csv
 ```
 
 ## Client file formats
@@ -97,6 +98,18 @@ Barclays Bank,GB,,,London
 ```
 
 Only `client_name` is mandatory.
+
+## Internal client/entity file format
+
+Recommended format:
+
+```csv
+internal_entity_id,legal_name,country,address,lei,registration_number,internal_rating,business_owner
+I001,Apple Inc,US,Cupertino,HWUPKR0MPOU8FGXBT394,,Low,Technology
+I002,Barclays PLC,GB,London,213800LBQA1Y9L22JB70,,Medium,Banking
+```
+
+`legal_name` is mandatory. `lei` is recommended but not mandatory; if there is no internal LEI, the pipeline falls back to normalized and fuzzy name matching.
 
 ## Workflow A: GLEIF reference refresh
 
@@ -133,5 +146,5 @@ Excel export is written to:
 Gold Delta table:
 
 ```text
-gleif_project.gleif_db.gold_client_to_internal_risk_mapping
+gleif_project.gleif_db.gold_client_to_internal_client_mapping
 ```
