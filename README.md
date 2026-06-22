@@ -131,7 +131,7 @@ Run whenever a client file arrives:
 06_generate_candidates.py
 07_score_and_rank_matches.py
 08_enrich_hierarchy.py
-09_create_gold_client_to_internal_risk_mapping.py
+09_create_gold_client_to_internal_client_mapping.py
 10_export_excel.py
 ```
 
