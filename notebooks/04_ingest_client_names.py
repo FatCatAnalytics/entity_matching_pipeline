@@ -16,7 +16,7 @@ schema = "gleif_db"
 volume = "gleif_vl"
 
 client_input_path = f"/Volumes/{catalog}/{schema}/{volume}/uploads/incoming/client_entities.csv"
-internal_input_path = f"/Volumes/{catalog}/{schema}/{volume}/uploads/internal_risk_entities.csv"
+internal_client_input_path = f"/Volumes/{catalog}/{schema}/{volume}/uploads/internal_client_entities.csv"
 
 uploaded_clients = (
     spark.read
@@ -62,8 +62,26 @@ client = (
 
 client.write.mode("overwrite").format("delta").saveAsTable(f"{catalog}.{schema}.client_entities_raw")
 
-internal = spark.read.option("header", True).csv(internal_input_path)
-internal.write.mode("overwrite").format("delta").saveAsTable(f"{catalog}.{schema}.internal_risk_entities_raw")
+internal_client = spark.read.option("header", True).csv(internal_client_input_path)
+
+# Backward-compatible rename if an older template is used.
+if "internal_entity_id" not in internal_client.columns and "risk_entity_id" in internal_client.columns:
+    internal_client = internal_client.withColumnRenamed("risk_entity_id", "internal_entity_id")
+
+if "internal_rating" not in internal_client.columns and "risk_rating" in internal_client.columns:
+    internal_client = internal_client.withColumnRenamed("risk_rating", "internal_rating")
+
+for optional_col in ["country", "address", "lei", "registration_number", "internal_rating", "business_owner"]:
+    if optional_col not in internal_client.columns:
+        internal_client = internal_client.withColumn(optional_col, lit(None).cast("string"))
+
+if "internal_entity_id" not in internal_client.columns:
+    internal_client = internal_client.withColumn(
+        "internal_entity_id",
+        concat(lit("I"), lpad(monotonically_increasing_id().cast("string"), 8, "0"))
+    )
+
+internal_client.write.mode("overwrite").format("delta").saveAsTable(f"{catalog}.{schema}.internal_client_entities_raw")
 
 display(client)
-print("Client and internal risk files ingested.")
+print("Client and internal client files ingested.")
