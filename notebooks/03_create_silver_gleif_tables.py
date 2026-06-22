@@ -14,6 +14,11 @@ def col_if_exists(df, name, alias_name=None):
         return col(f"`{name}`").alias(alias_name)
     return lit(None).cast("string").alias(alias_name)
 
+def date_col_if_exists(df, name, alias_name):
+    if name in df.columns:
+        return col(f"`{name}`").cast("date").alias(alias_name)
+    return lit(None).cast("date").alias(alias_name)
+
 silver_entities = (
     lei_raw
     .select(
@@ -65,8 +70,8 @@ silver_relationships = (
         col("`Relationship.EndNode.NodeID`").alias("parent_lei"),
         col("`Relationship.RelationshipType`").alias("relationship_type"),
         col("`Relationship.RelationshipStatus`").alias("relationship_status"),
-        col_if_exists(rr_raw, "Relationship.Period.1.startDate", "period_start").cast("date"),
-        col_if_exists(rr_raw, "Relationship.Period.1.endDate", "period_end").cast("date"),
+        date_col_if_exists(rr_raw, "Relationship.Period.1.startDate", "period_start"),
+        date_col_if_exists(rr_raw, "Relationship.Period.1.endDate", "period_end"),
         col("_source_file"),
         col("_bronze_loaded_at")
     )
